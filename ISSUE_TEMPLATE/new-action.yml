@@ -1,0 +1,17 @@
+name: Add Action
+description: Request adding a GitHub Action to the chainguard-actions organization
+labels: ["new-action"]
+body:
+  - type: input
+    id: source-url
+    attributes:
+      label: Source Repository
+      description: Link to the repository or directory containing the action.
+      placeholder: e.g. https://github.com/actions/checkout
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other details or known consumers.
