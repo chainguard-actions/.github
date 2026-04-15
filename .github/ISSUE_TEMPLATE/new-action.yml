@@ -3,11 +3,11 @@ description: Request adding a GitHub Action to the chainguard-actions organizati
 labels: ["new-action"]
 body:
   - type: input
-    id: source-url
+    id: action-url
     attributes:
-      label: Source Repository
-      description: Link to the repository or directory containing the action.
-      placeholder: e.g. https://github.com/actions/checkout
+      label: Action URL
+      description: GitHub Action reference or repository URL of the action.
+      placeholder: e.g. actions/checkout@v6
     validations:
       required: true
   - type: textarea
