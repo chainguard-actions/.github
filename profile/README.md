@@ -16,6 +16,10 @@ Learn more at [chainguard.dev/actions](https://www.chainguard.dev/actions).
 
 To request a new action, [open an issue](https://github.com/chainguard-actions/.github/issues/new?template=new-action.yml).
 
+## Report an Issue
+
+If an action isn't working as expected, [open an issue](https://github.com/chainguard-actions/.github/issues/new?template=action-issue.yml) and include the action reference, a description of the problem, and steps to reproduce.
+
 ## Contact
 
 For questions or issues, reach out to interest@chainguard.dev.
