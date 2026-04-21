@@ -1,0 +1,40 @@
+name: Action Issue
+description: Report an issue with a chainguard-actions action
+labels: ["action-issue"]
+body:
+  - type: input
+    id: action-ref
+    attributes:
+      label: Action
+      description: The chainguard-actions action reference you are using.
+      placeholder: e.g. chainguard-actions/checkout@abc1234
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal workflow snippet or steps that trigger the issue.
+      render: yaml
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include any error messages or logs.
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other details, links, or environment information.
