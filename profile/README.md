@@ -81,33 +81,38 @@ It is a best practice to use the SHA instead of a tag. We've said that and shown
 Returning to our previous example, we put this in our workflow YAML file.
 
 ```yaml
-- uses: chainguard-actions/changed-files@<SHA> # v45
+- uses: chainguard-actions/changed-files@<SHA> # v47
 ```
 
 When we say *SHA* we are referring to the specific commit hash of a published action.
 
-To find the SHA that correlates to the v45 release of our action:
+Here's a quick way to find the SHA that correlates to the v47 release of our action.
 
-1. In your browser open the [`chainguard-actions/changed-files` GitHub repo](https://github.com/chainguard-actions/changed-files).
+```shell
+gh api repos/chainguard-actions/changed-files/commits/v47 --jq '.sha'
+```
 
-1. Click the **tags** entry under **Releases** in the right sidebar.
+```response
+25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa
+```
 
-1. Along the bottom of each entry in the list is the short version of the commit hash. Click the one for the v45 release.
+If you only need the short version, use:
 
-    The full SHA will be in the URL, as in this URL for the short commit hash `25a1eb5`, which is the commit that merged v45 into the repo:
+```shell
+gh api repos/chainguard-actions/changed-files/commits/v47 --jq '.sha[:7]'
+```
 
-    ```url
-    https://github.com/chainguard-actions/changed-files/commit/25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa
-    ```
+```response
+25a1eb5
+```
 
-    The number at the end is the full SHA, `25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa`. This is what you want to use above, like this:
+Here's what our example looks like with the full SHA:
 
-    ```yaml
-    - uses: chainguard-actions/changed-files@25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa # v47
-    ```
+```yaml
+- uses: chainguard-actions/changed-files@25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa # v47
+```
 
 See GitHub to learn more about the [commit hash for GitHub Actions](https://github.com/marketplace/actions/commit-hash).
-
 
 ## Hardened action repo contents
 
