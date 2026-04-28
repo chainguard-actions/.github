@@ -41,28 +41,26 @@ Take the following steps to switch your workflow over to using Chainguard Action
 
 1. Replace the `uses:` line in each workflow.
 
-    Change only the organization; keep the action name and version identical to what you already had. For example:
+    In your GitHub Actions workflow YAML, change only the organization; keep the action name. Then, instead of using the mutable release, we recommend you pin to the SHA with the tag in a comment. For example:
 
     ```yaml
     # Before
-    - uses: tj-actions/changed-files@v45
+    - uses: tj-actions/changed-files@v47
     ```
+
+    Placing the tag in a comment after the SHA makes it possible for Dependabot and Renovate and human reviewers to handle upgrades.
 
     ```yaml
     # After
-    - uses: chainguard-actions/changed-files@v45
+    - uses: chainguard-actions/changed-files@<SHA> # v47
     ```
 
-    Leave the original version as a YAML comment so Dependabot/Renovate and human reviewers can read it:
+    Leave the original version as a YAML comment so Dependabot/Renovate and human reviewers can read it for history.
 
     ```yaml
-    - uses: chainguard-actions/changed-files@v45
-    # originally - uses: chainguard-actions/changed-files@v45
+    - uses: chainguard-actions/changed-files@<SHA> # v47
+    # originally - uses: tj-actions/changed-files@v47
     ```
-
-    Notice that we direct you to use mutable version references with the Chainguard catalog, such as `@v45`. This is how you get continuous re-hardening — when a new threat is discovered and the Factory re-hardens the action, your next workflow run automatically uses the fixed version.
-
-    > **Note:** Unlike community actions where mutable tags are a known attack vector, the chainguard-actions catalog is owned and operated by Chainguard. Each action is built from source and re-hardened with each published version that includes signed commits, provenance, and a freshness SLA backing every reference.
 
 1. Update your allowed-actions list.
 
@@ -75,6 +73,41 @@ Take the following steps to switch your workflow over to using Chainguard Action
     > **Note:** Always read the `HARDENING.md` file for the Chainguard Action before migrating in case there is a rare instance where something had to be changed for the hardening process. Any changes to inputs, outputs, or behavior will be documented in this file.
 
     If something does break, [file an issue](https://github.com/chainguard-actions/.github/issues/new?template=action-issue.yml) with a reproducer.
+
+## Find the SHA for a specific release
+
+It is a best practice to use the SHA instead of a tag. We've said that and shown where to put the SHA. But what if you don't know how to find the SHA. That's what this section is about.
+
+Returning to our previous example, we put this in our workflow YAML file.
+
+```yaml
+- uses: chainguard-actions/changed-files@<SHA> # v45
+```
+
+When we say *SHA* we are referring to the specific commit hash of a published action.
+
+To find the SHA that correlates to the v45 release of our action:
+
+1. In your browser open the [`chainguard-actions/changed-files` GitHub repo](https://github.com/chainguard-actions/changed-files).
+
+1. Click the **tags** entry under **Releases** in the right sidebar.
+
+1. Along the bottom of each entry in the list is the short version of the commit hash. Click the one for the v45 release.
+
+    The full SHA will be in the URL, as in this URL for the short commit hash `25a1eb5`, which is the commit that merged v45 into the repo:
+
+    ```url
+    https://github.com/chainguard-actions/changed-files/commit/25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa
+    ```
+
+    The number at the end is the full SHA, `25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa`. This is what you want to use above, like this:
+
+    ```yaml
+    - uses: chainguard-actions/changed-files@25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa # v47
+    ```
+
+See GitHub to learn more about the [commit hash for GitHub Actions](https://github.com/marketplace/actions/commit-hash).
+
 
 ## Hardened action repo contents
 
