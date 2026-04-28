@@ -35,7 +35,7 @@ Take the following steps to switch your workflow over to using Chainguard Action
 
 1. Check the catalog of Chainguard Actions for each one.
 
-    Browse [the Chainguard Actions repository](https://github.com/chainguard-actions) or use the GitHub UI search. Match by action name, not upstream org. Example: if you are currently using `tj-actions/changed-files` → look for `chainguard-actions/changed-files`.
+    Browse [the Chainguard Actions repository](https://github.com/chainguard-actions) or use the GitHub UI search. Match by denoting the origin org and action. Example: if you are currently using `tj-actions/changed-files` → look for `org:chainguard-actions/tj-actions/changed-files`.
 
     If the action isn't in the catalog, [open an issue](https://github.com/chainguard-actions/.github/issues/new?template=new-action.yml) to request it and move on — new actions are typically added within days once triaged.
 
