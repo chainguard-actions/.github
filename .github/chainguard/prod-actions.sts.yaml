@@ -10,3 +10,4 @@ permissions:
   contents: write
   metadata: read
   administration: write
+  issues: write
