@@ -11,3 +11,6 @@ permissions:
   metadata: read
   administration: write
   issues: write
+  workflows: write
+
+repositories: [] # Act over all of the repos in the org.
