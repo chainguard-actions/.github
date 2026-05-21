@@ -13,6 +13,62 @@ Each hardened action:
 
 Chainguard Actions is designed to prevent common threats like tag hijacking, dependency confusion, `pull_request_target` abuse, and secret exfiltration.
 
+## Prerequisites
+
+Requires:
+
+- `chainctl` v0.2.261+
+- An organization in the Chainguard platform that you own or can administer
+
+## Preliminary steps
+
+You must do these things before anything else:
+
+- Log in to Chainguard
+- Enable Chainguard Actions for your organization
+
+### Log in to Chainguard
+
+Authenticate using `chainctl`:
+
+```shell
+chainctl auth login
+```
+
+Confirm you are logged in and view your organization details.
+
+```shell
+chainctl auth status
+```
+
+### Enable Chainguard Actions for your organization
+
+Create the Chainguard Actions entitlement to enable access to the hardened actions hosted at `github.com/chainguard-actions`.
+
+```shell
+chainctl actions entitlements create --parent $ORGANIZATION
+```
+
+This will return a message like this ($ENTITLEMENT_ID will show your actual ID, unlike in the example).
+
+```output
+Enabled Actions product for org chainguard.edu ($ENTITLEMENT_ID) [entitlement id: $ENTITLEMENT_ID]
+```
+
+Confirm your entitlement with:
+
+```shell
+chainctl actions entitlements list --parent $ORGANIZATION
+```
+
+This will return a table like this:
+
+```output
+                    ID                    |         CREATED
+------------------------------------------|-------------------------
+ $ENTITLEMENT_ID                          | 2026-05-19 17:33:24 UTC
+```
+
 ## Basic usage
 
 Edit your workflow's YAML configuration file, replacing the current source of an action with `chainguard-actions`, like this.
@@ -113,6 +169,29 @@ Here's what our example looks like with the full SHA:
 ```
 
 See GitHub to learn more about the [commit hash for GitHub Actions](https://github.com/marketplace/actions/commit-hash).
+
+## View the actions you are currently using in a repo
+
+Direct `chainctl` to your Git repo to see what actions it currently uses. `chainctl` will scan every workflow and composite action and list what they depend on (works transitively).
+
+```shell
+chainctl actions discover $GIT_ORGANIZATION/$REPO
+```
+
+Expected output:
+
+```output
+    scanning $GIT_ORGANIZATION/$REPO for workflows and actions
+               ACTION                    | REQUESTED | USED BY
+    -------------------------------------|-----------|---------
+     actions/checkout                    | v4        | 1
+     chainguard-actions/actions-checkout | v6.0.2    | 1
+
+    2 actions, 0 container images
+
+```
+
+The repo in our example has two workflows that do the same thing. One uses the upstream action, one uses the hardened equivalent.
 
 ## Example migrations
 
