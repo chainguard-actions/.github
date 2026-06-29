@@ -74,7 +74,7 @@ This will return a table like this:
 Edit your workflow's YAML configuration file, replacing the current source of an action with `chainguard-actions`, like this.
 
 ```yaml
-- uses: chainguard-actions/<action-name>@main
+- uses: chainguard-actions/<upstream-org>-<action-name>@tag
 ```
 
 ## Configure your workflows to use Chainguard Actions
@@ -91,7 +91,7 @@ Take the following steps to switch your workflow over to using Chainguard Action
 
 1. Check the catalog of Chainguard Actions for each one.
 
-    Browse [the Chainguard Actions repository](https://github.com/chainguard-actions) or use the GitHub UI search. Match by denoting the origin org and action. Example: if you are currently using `tj-actions/changed-files` → look for `org:chainguard-actions tj-actions/changed-files`.
+    Browse [the Chainguard Actions repository](https://github.com/chainguard-actions) or use the GitHub UI search. Match by denoting the origin org and action. Example: if you are currently using `tj-actions/changed-files` → look for `org:chainguard-actions tj-actions-changed-files`.
 
     If the action isn't in the catalog, [open an issue](https://github.com/chainguard-actions/.github/issues/new?template=new-action.yml) to request it and move on — new actions are typically added within days once triaged.
 
@@ -108,13 +108,13 @@ Take the following steps to switch your workflow over to using Chainguard Action
 
     ```yaml
     # After
-    - uses: chainguard-actions/changed-files@<SHA> # v47
+    - uses: chainguard-actions/tj-actions-changed-files@<SHA> # v47
     ```
 
     Leave the original version as a YAML comment so Dependabot/Renovate and human reviewers can read it for history.
 
     ```yaml
-    - uses: chainguard-actions/changed-files@<SHA> # v47
+    - uses: chainguard-actions/tj-actions-changed-files@<SHA> # v47
     # originally - uses: tj-actions/changed-files@v47
     ```
 
@@ -126,7 +126,7 @@ Take the following steps to switch your workflow over to using Chainguard Action
 
     The action's inputs, outputs, and behavior are almost always identical to upstream, so no other workflow changes should be needed.
 
-    > **Note:** Always read the `HARDENING.md` file for the Chainguard Action before migrating in case there is a rare instance where something had to be changed for the hardening process. Any changes to inputs, outputs, or behavior will be documented in this file.
+    > **Note:** Always read the `HARDENING.md` file for the Chainguard Action before migrating in case there is a rare instance where something had to be changed for the hardening process. `HARDENING.md` is available for every tagged version of an action, not on the `main` branch. Any changes to inputs, outputs, or behavior will be documented in this file.
 
     If something does break, [file an issue](https://github.com/chainguard-actions/.github/issues/new?template=action-issue.yml) with a reproducer.
 
@@ -210,7 +210,7 @@ All that happens here is that we change the `uses:` line. Even with the same `wi
       tests/**
 
 # After
-- uses: chainguard-actions/changed-files@v45>
+- uses: chainguard-actions/tj-actions-changed-files@v45>
   with:
     files: |
       src/**
@@ -230,7 +230,7 @@ All that happens here is that we change the `uses:` line. Even with the same `wi
     exit-code: '1'
 
 # After
-- uses: chainguard-actions/trivy-action@v0.28
+- uses: chainguard-actions/aquasecurity-trivy-action@v0.28
   with:
     image-ref: 'my-org/my-image:${{ github.sha }}'
     severity: 'CRITICAL,HIGH'
@@ -255,12 +255,12 @@ All that happens here is that we change the `uses:` line. Even with the same `wi
     tags: my-org/my-image:${{ github.sha }}
 
 # After
-- uses: chainguard-actions/login-action@<sha>
+- uses: chainguard-actions/docker-login-action@<sha>
   with:
     username: ${{ secrets.DOCKER_USERNAME }}
     password: ${{ secrets.DOCKER_PASSWORD }}
 
-- uses: chainguard-actions/build-push-action@<sha>
+- uses: chainguard-actions/docker-build-push-action@<sha>
   with:
     context: .
     push: true
@@ -279,7 +279,7 @@ This handles OIDC exchange for your AWS short-lived credentials. Any compromise 
     aws-region: us-east-1
 
 # After
-- uses: chainguard-actions/configure-aws-credentials@<sha>
+- uses: chainguard-actions/aws-actions-configure-aws-credentials@<sha>
   with:
     role-to-assume: arn:aws:iam::123456789012:role/ci-role
     aws-region: us-east-1
@@ -297,7 +297,7 @@ This generates SPDX/CycloneDX SBOMs with Syft, which is widely used for SLSA/com
     format: spdx-json
 
 # After
-- uses: chainguard-actions/sbom-action@<sha>
+- uses: chainguard-actions/anchore-sbom-action@<sha>
   with:
     image: my-org/my-image:${{ github.sha }}
     format: spdx-json
@@ -307,7 +307,7 @@ This generates SPDX/CycloneDX SBOMs with Syft, which is widely used for SLSA/com
 
 In each repo for a hardened action, you will find:
 
-- `HARDENING.md` — the authoritative, per-action record of what was checked, what was fixed, and how.
+- `HARDENING.md` — the authoritative, per-action record of what was checked, what was fixed, and how. This does not exist on the `main` branch; please navigate to the tagged release branches to see it for every released version of the action.
 - `action.yml` / `action.yaml` — the hardened action definition (preserving upstream inputs/outputs, with fixes applied).
 - `LICENSE_CHAINGUARD` — the Chainguard license attached to the hardened variant.
 - `source.json` / `published.json` — (in most repos) manifests pointing at the upstream source and the upstream version being tracked. Not yet universal — some older hardened repos don't have them.
