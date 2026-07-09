@@ -1,33 +1,35 @@
 # Chainguard Actions
 
-Chainguard Actions is a set of hardened drop-in replacements for popular GitHub Actions to protect your CI/CD pipelines from supply chain attacks. Each action has the same inputs and outputs as the community version. What changes on your end is the organization referenced in your workflow configuration's `uses:` line.
+Chainguard Actions are a set of hardened drop-in replacements for popular GitHub Actions. Each action preserves the same inputs and outputs as the upstream version, but has been examined and revised to better protect your CI/CD pipelines from supply chain attacks. The only change in your workflow configuration is the name of the action in the `uses:` line.
 
-Coverage spans GitHub first-party (`actions/*`), cloud-provider (`aws-actions/*`, `azure/*`, `google-github-actions/*`), Docker, HashiCorp, security tools (Trivy, Grype, CodeQL, Semgrep), and the high-risk long tail of community actions.
+Coverage spans GitHub first-party (`actions/*`), cloud-provider (`aws-actions/*`, `azure/*`, `google-github-actions/*`), Docker, HashiCorp, and security tools actions (Trivy, Grype, CodeQL, Semgrep), as well as a growing catalog of community actions.
 
 Each hardened action:
 
-- Is built from source and run through our rule-based + AI-evaluated hardening pipeline
-- Has every internal `uses:` and container image reference pinned to an immutable SHA
+- Is built from source and evaluated through a rule-based and AI-powered hardening pipeline
+- Has every internal `uses:` and container image reference pinned to an immutable SHA digest
 - Ships with a `HARDENING.md` report documenting exactly what was checked and fixed
 - Is re-reviewed and re-hardened whenever upstream publishes a new version or Chainguard adds a new rule
 
-Chainguard Actions is designed to prevent common threats like tag hijacking, dependency confusion, `pull_request_target` abuse, and secret exfiltration.
+Chainguard Actions protect against common threats including tag hijacking, dependency confusion, `pull_request_target` abuse, and secret exfiltration.
 
 ## Prerequisites
 
-Requires:
+To follow this guide, you need:
 
-- `chainctl` v0.2.261+
-- An organization in the Chainguard platform that you own or can administer
+- `chainctl` **v0.2.261** or later.
+- An active Chainguard organization.
+- Owner access on the organization.
+
+The examples in this guide use an `$ORGANIZATION` environment variable to refer to your organization. Set it to the name of your organization before you begin:
+
+```shell
+export ORGANIZATION=<your-organization>
+```
 
 ## Preliminary steps
 
-You must do these things before anything else:
-
-- Log in to Chainguard
-- Enable Chainguard Actions for your organization
-
-### Log in to Chainguard
+Before using Chainguard Actions, log in to Chainguard and enable the Chainguard Actions entitlement for your organization.
 
 Authenticate using `chainctl`:
 
@@ -35,150 +37,128 @@ Authenticate using `chainctl`:
 chainctl auth login
 ```
 
-Confirm you are logged in and view your organization details.
-
-```shell
-chainctl auth status
-```
-
-### Enable Chainguard Actions for your organization
-
-Create the Chainguard Actions entitlement to enable access to the hardened actions hosted at `github.com/chainguard-actions`.
+Create the Chainguard Actions entitlement to enable access to the hardened actions hosted at `github.com/chainguard-actions`:
 
 ```shell
 chainctl actions entitlements create --parent $ORGANIZATION
 ```
 
-This will return a message like this ($ENTITLEMENT_ID will show your actual ID, unlike in the example).
+The output confirms the entitlement:
 
 ```output
 Enabled Actions product for org chainguard.edu ($ENTITLEMENT_ID) [entitlement id: $ENTITLEMENT_ID]
 ```
 
-Confirm your entitlement with:
+Confirm your entitlement:
 
 ```shell
 chainctl actions entitlements list --parent $ORGANIZATION
 ```
 
-This will return a table like this:
-
 ```output
                     ID                    |         CREATED
 ------------------------------------------|-------------------------
- $ENTITLEMENT_ID                          | 2026-05-19 17:33:24 UTC
+ $ENTITLEMENT_ID                          | 2026-06-18 17:33:24 UTC
 ```
 
-## Basic usage
+## Basic usage (quick start)
 
-Edit your workflow's YAML configuration file, replacing the current source of an action with `chainguard-actions`, like this.
+To use a Chainguard hardened action, edit your workflow's YAML configuration file and change the `uses:` line to match the location in `chainguard-actions`:
 
 ```yaml
-- uses: chainguard-actions/<upstream-org>-<action-name>@tag
+- uses: chainguard-actions/<action-name>@main
 ```
+
+Action names often have the upstream organization appended to the action name for clarity, for example, `tj-actions/changed-actions` becomes `tj-actions-changed-actions`. This prevents two different sources of a `changed-actions` action from clashing in the Chainguard Actions repository.
+
+Search the Chainguard Actions repository, find the action you want to use, and then use the name you find there.
+
+> **Note:** This example uses `@main`, a mutable reference, to illustrate the mechanics of switching organizations. For production workflows, pin to an immutable SHA digest instead. The [Configure your workflows](#configure-your-workflows-to-use-chainguard-actions) section covers the full migration, including how to [find the correct SHA digest](#find-the-sha-for-a-specific-release).
+
+The rest of this page goes a bit deeper into how to use Chainguard Actions.
 
 ## Configure your workflows to use Chainguard Actions
 
-Take the following steps to switch your workflow over to using Chainguard Actions.
+You can save some time by using the optional [cg-actions](https://github.com/chainguard-dev/cg-skills/tree/main/skills/cg-actions) skill, a Claude Code skill for auditing GitHub Actions usage and migrating to Chainguard hardened actions.
 
-1. Inventory the community actions you currently use.
+Following the steps in this section will achieve a similar result.
 
-    Run this from the root of your repo to get a deduplicated list of every `uses:` line across every workflow.
+### Inventory the actions you currently use.
 
-    ```shell
-    grep -rhE "uses:\s*[^@]+@" .github/workflows/ | sort -u
-    ```
-
-1. Check the catalog of Chainguard Actions for each one.
-
-    Browse [the Chainguard Actions repository](https://github.com/chainguard-actions) or use the GitHub UI search. Match by denoting the origin org and action. Example: if you are currently using `tj-actions/changed-files` → look for `org:chainguard-actions tj-actions-changed-files`.
-
-    If the action isn't in the catalog, [open an issue](https://github.com/chainguard-actions/.github/issues/new?template=new-action.yml) to request it and move on — new actions are typically added within days once triaged.
-
-1. Replace the `uses:` line in each workflow.
-
-    In your GitHub Actions workflow YAML, change only the organization; keep the action name. Then, instead of using the mutable release, we recommend you pin to the SHA with the tag in a comment. For example:
-
-    ```yaml
-    # Before
-    - uses: tj-actions/changed-files@v47
-    ```
-
-    Placing the tag in a comment after the SHA makes it possible for Dependabot and Renovate and human reviewers to handle upgrades.
-
-    ```yaml
-    # After
-    - uses: chainguard-actions/tj-actions-changed-files@<SHA> # v47
-    ```
-
-    Leave the original version as a YAML comment so Dependabot/Renovate and human reviewers can read it for history.
-
-    ```yaml
-    - uses: chainguard-actions/tj-actions-changed-files@<SHA> # v47
-    # originally - uses: tj-actions/changed-files@v47
-    ```
-
-1. Update your allowed-actions list.
-
-    If your GitHub org or repo restricts which actions can run (with Settings → Actions → General → Allow select actions), add `chainguard-actions/*` to the allowed patterns. Without this, workflows will fail with a policy error on first run.
-
-1. Commit, open a PR, and watch CI pass.
-
-    The action's inputs, outputs, and behavior are almost always identical to upstream, so no other workflow changes should be needed.
-
-    > **Note:** Always read the `HARDENING.md` file for the Chainguard Action before migrating in case there is a rare instance where something had to be changed for the hardening process. `HARDENING.md` is available for every tagged version of an action, not on the `main` branch. Any changes to inputs, outputs, or behavior will be documented in this file.
-
-    If something does break, [file an issue](https://github.com/chainguard-actions/.github/issues/new?template=action-issue.yml) with a reproducer.
-
-## Find the SHA for a specific release
-
-It is a best practice to use the SHA instead of a tag. We've said that and shown where to put the SHA. But what if you don't know how to find the SHA. That's what this section is about.
-
-Returning to our previous example, we put this in our workflow YAML file.
-
-```yaml
-- uses: chainguard-actions/changed-files@<SHA> # v47
-```
-
-When we say *SHA* we are referring to the specific commit hash of a published action.
-
-Here's a quick way to find the SHA that correlates to the v47 release of our action.
+Run this from the root of your repository to get a deduplicated list of every `uses:` line across every workflow:
 
 ```shell
-gh api repos/chainguard-actions/changed-files/commits/v47 --jq '.sha'
+grep -rhE "uses:\s*[^@]+@" .github/workflows/ | sort -u
 ```
 
-```response
+### Check the Chainguard Actions catalog for each action.
+
+Browse [the Chainguard Actions repository](https://github.com/chainguard-actions) or use the GitHub search UI. Match by organization and action name — for example, if you use `tj-actions/changed-files`, search for `org:chainguard-actions tj-actions-changed-files`.
+
+If the action isn't in the catalog, [open an issue](https://github.com/chainguard-actions/.github/issues/new?template=new-action.yml) to request it.
+
+### Replace the `uses:` line in each workflow.
+
+Change the `uses:` line to match the location in `chainguard-actions`. Find and pin to the commit SHA digest and preserve the original tag as a comment so Dependabot, Renovate, and human reviewers can track upgrades:
+
+```yaml
+# Before
+- uses: tj-actions/changed-files@v47
+```
+
+```yaml
+# After
+- uses: chainguard-actions/tj-actions-changed-files@<SHA> # v47
+# originally - uses: tj-actions/changed-files@v47
+```
+
+To find the SHA digest for a specific release, use the `gh` CLI:
+
+```shell
+gh api repos/chainguard-actions/tj-actions-changed-files/commits/v47 --jq '.sha'
+```
+
+```output
 25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa
 ```
 
-If you only need the short version, use:
+For the short SHA digest:
 
 ```shell
-gh api repos/chainguard-actions/changed-files/commits/v47 --jq '.sha[:7]'
+gh api repos/chainguard-actions/tj-actions-changed-files/commits/v47 --jq '.sha[:7]'
 ```
 
-```response
+```output
 25a1eb5
 ```
 
-Here's what our example looks like with the full SHA:
+The resulting `uses:` line with the full SHA digest:
 
 ```yaml
 - uses: chainguard-actions/changed-files@25a1eb5aa40568ec6f8c0e58f2e809ef4270ebfa # v47
 ```
 
-See GitHub to learn more about the [commit hash for GitHub Actions](https://github.com/marketplace/actions/commit-hash).
+### Update your allowed-actions list
 
-## View the actions you are currently using in a repo
+If your GitHub organization or repository restricts which actions can run (**Settings > Actions > General > Allow select actions**), add `chainguard-actions/*` to the allowed patterns. Without this, workflows fail with a policy error on first run.
 
-Direct `chainctl` to your Git repo to see what actions it currently uses. `chainctl` will scan every workflow and composite action and list what they depend on (works transitively).
+> **Note:** It's a good idea to remove allowed actions that are no longer being used.
+
+### Commit, open a PR, and verify that CI passes
+
+The action's inputs, outputs, and behavior are almost always identical to the upstream version, so no other workflow changes are typically needed.
+
+However, read the `HARDENING.md` file for each Chainguard Action before migrating. In rare cases, the hardening process requires a change to inputs, outputs, or behavior — those changes are documented in this file.
+
+If something breaks, [file an issue](https://github.com/chainguard-actions/.github/issues/new?template=action-issue.yml) with a reproducer.
+
+## View the actions you are currently using in a repository
+
+Use `chainctl` to scan every workflow and composite action in a repository and list all dependencies transitively:
 
 ```shell
 chainctl actions discover $GIT_ORGANIZATION/$REPO
 ```
-
-Expected output:
 
 ```output
     scanning $GIT_ORGANIZATION/$REPO for workflows and actions
@@ -191,7 +171,41 @@ Expected output:
 
 ```
 
-The repo in our example has two workflows that do the same thing. One uses the upstream action, one uses the hardened equivalent.
+## View the actions currently available
+
+While you can search the [Chainguard Actions repository](https://github.com/chainguard-actions) directly in GitHub, you can also use `chainctl` to find an action.
+
+```shell
+chainctl actions catalog list --upstream-owner=$OWNER
+```
+
+For example, to list all the actions from the `tj-actions` source:
+
+```shell
+chainctl actions catalog list --upstream-owner=tj-actions
+```
+
+This example returns a list of all actions in the Chainguard Actions repository that originate from the `tj-actions` upstream source.
+
+## Hardened action repository contents
+
+The main branch of each hardened action repository contains:
+
+- `HARDENING.md` — the authoritative, per-action record of what was checked, what was fixed, and how
+- `action.yml` or `action.yaml` — the hardened action definition, preserving upstream inputs and outputs with fixes applied
+- `LICENSE_CHAINGUARD` — the Chainguard license for the hardened variant
+- `source.json` and `published.json` — manifests pointing at the upstream source and the upstream version being tracked (not yet present in all repos; some older repos don't include them)
+- Some actions also include documentation from upstream that you can adapt to use with the Chainguard hardened version
+
+Then, the version branches in the hardened action repos contain the hardened actions.
+
+## The continuous re-hardening process
+
+Chainguard Actions are continuously re-hardened:
+
+- When upstream publishes a new version, the pipeline re-runs and publishes a new hardened version
+- When the hardening ruleset is updated, affected actions are re-reviewed against the new rules
+- The `HARDENING.md` report is regenerated on every hardening run, with its own policy SHA pinning the exact set of rules that were applied
 
 ## Example migrations
 
@@ -311,15 +325,6 @@ In each repo for a hardened action, you will find:
 - `action.yml` / `action.yaml` — the hardened action definition (preserving upstream inputs/outputs, with fixes applied).
 - `LICENSE_CHAINGUARD` — the Chainguard license attached to the hardened variant.
 - `source.json` / `published.json` — (in most repos) manifests pointing at the upstream source and the upstream version being tracked. Not yet universal — some older hardened repos don't have them.
-
-## The continuous re-hardening process
-
-Chainguard Actions are continuously re-hardened like this.
-
-- When upstream publishes a new version, the pipeline re-runs and publishes a new hardened version.
-- When the hardening ruleset is updated, affected actions are re-reviewed against the new rules.
-- The `HARDENING.md` report is regenerated on every hardening run, with its own Policy SHA pinning the exact set of actions that were applied.
-
 
 ## Request a new action
 
