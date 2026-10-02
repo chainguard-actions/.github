@@ -10,7 +10,7 @@ Coverage spans GitHub first-party (`actions/*`), cloud-provider (`aws-actions/*`
 
 Each hardened action:
 
-- Is rebuilt from the upstream source at a pinned commit, then reviewed by a static ruleset and an AI-powered analysis pass
+- Is pulled from the upstream source at a pinned commit, then reviewed by a static ruleset and an AI-powered analysis pass
 - Has every internal `uses:` and container image reference pinned to an immutable SHA digest
 - Ships with a `HARDENING.md` report recording every finding, its location, and how it was fixed
 - Ships with a signed SLSA provenance attestation naming the upstream commit and the ruleset version applied
