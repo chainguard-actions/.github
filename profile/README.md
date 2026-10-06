@@ -18,7 +18,7 @@ Each hardened action:
 
 Chainguard Actions protect against common threats including tag hijacking, dependency confusion, `pull_request_target` abuse, and secret exfiltration.
 
-Two boundaries worth knowing up front. Dependency vulnerability management is not part of hardening today: when a JavaScript action's bundle is rebuilt, the builder installs exactly what the upstream lockfile pins, so the rebuild reproduces the bundle rather than refreshing it and a hardened release ships the dependency versions the upstream release shipped. And nested action references are being rewritten to their Chainguard counterparts, but that work is still rolling out, so a given action may not have been rewritten yet. Both are covered in full in [the documentation](https://edu.chainguard.dev/chainguard/actions/overview/).
+Two boundaries worth knowing up front. Hardening doesn't change the packages an action bundles or installs: a JavaScript action ships the same `dist/` bundle as its upstream release, with the same dependency versions, and an action built from a Dockerfile uses the same base image as upstream. Packages and binaries an action downloads while it runs are outside the review. And nested actions are swapped for hardened copies only in composite actions, and only when a hardened copy exists for that exact upstream commit, so read the `action.yml` on the version branch you plan to use to see what it references. Both are covered in full in [the documentation](https://edu.chainguard.dev/chainguard/actions/overview/#transitive-dependencies).
 
 ## Finding an action
 
@@ -149,7 +149,7 @@ Inputs, outputs, and behavior are almost always identical to the upstream versio
 
 ## What's in a repository
 
-The main branch is a landing page. It holds `README.md`, `LICENSE_CHAINGUARD`, and `source.json`, the manifest naming the upstream owner, repository, version, and commit.
+The main branch is a landing page. It holds `README.md`, `LICENSE_CHAINGUARD`, and `source.json`, the manifest naming the upstream owner and repository. Each version branch has its own `source.json` that adds the upstream version and the exact commit the hardened copy was built from.
 
 Each version branch holds the hardened action itself: `action.yml` or `action.yaml`, the `HARDENING.md` report, `LICENSE_CHAINGUARD`, the upstream action's own files, and — for releases published since signing began — an `attestations/` directory carrying the provenance attestation.
 
