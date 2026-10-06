@@ -18,7 +18,7 @@ Each hardened action:
 
 Chainguard Actions protect against common threats including tag hijacking, dependency confusion, `pull_request_target` abuse, and secret exfiltration.
 
-Two boundaries worth knowing up front. Dependency vulnerability management is not part of hardening today: when a JavaScript action's bundle is rebuilt, the builder installs exactly what the upstream lockfile pins, so the rebuild reproduces the bundle rather than refreshing it and a hardened release ships the dependency versions the upstream release shipped. And nested action references are being rewritten to their Chainguard counterparts, but that work is still rolling out, so a given action may not have been rewritten yet. Both are covered in full in [the documentation](https://edu.chainguard.dev/chainguard/actions/overview/).
+Two boundaries worth knowing up front. Hardening doesn't change the packages an action bundles or installs: a JavaScript action ships the same `dist/` bundle as its upstream release, so a hardened release carries the dependency versions the upstream release shipped, and dependency vulnerability management is not part of hardening today. And nested actions are swapped for hardened copies only in composite actions, and only when a hardened copy exists for that exact upstream commit, so read the `action.yml` on the version branch you plan to use to see what it references. Both are covered in full in [the documentation](https://edu.chainguard.dev/chainguard/actions/overview/#what-hardening-doesnt-change).
 
 ## Finding an action
 
