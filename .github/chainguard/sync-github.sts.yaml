@@ -10,5 +10,6 @@ permissions:
   administration: write # required to manage the repository
   members: write # to add/remove GitHub members
   metadata: read # to read metadata about the org
+  organization_custom_org_roles: write # required for managing custom organization roles
 
 repositories: [] # Act over all of the repos in the org.
