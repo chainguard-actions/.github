@@ -1,13 +1,15 @@
 # Copyright 2026 Chainguard, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-# Octo STS trust policy for the ActionChain2 patch-actions deployment's
-# distribute (the pipeline behind the patch-based control repo,
-# chainguard-dev/guarded-actions2). It publishes only the actions that
-# chainguard-dev/guarded-actions' policy/ownership.json marks owned; prod
-# (prod-actions.sts.yaml) skips those.
+# Octo STS trust policy for the ActionChain2 patch-actions deployment (the
+# pipeline behind the patch-based control repo, chainguard-dev/guarded-actions2).
+# Its distribute publishes the actions the patch pipeline owns: the ones
+# chainguard-dev/guarded-actions' policy/ownership.json marks owned, and
+# brand-new actions it onboards; prod (prod-actions.sts.yaml) skips those.
 #
-# Same as prod-actions.sts.yaml without issues: only prod's issuegroom needs it.
+# Same permissions as prod-actions.sts.yaml. issues: write is for the patch
+# deployment's issuegroom, which labels, comments on and closes the new-action
+# requests in this repo for the actions the patch pipeline owns.
 #
 # OCTO_IDENTITY: patch-actions
 
@@ -20,6 +22,7 @@ permissions:
   contents: write
   metadata: read
   administration: write
+  issues: write
   workflows: write
 
 repositories: [] # Act over all of the repos in the org.
